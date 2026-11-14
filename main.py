@@ -287,7 +287,12 @@ def mode1():
     print("\n[3] MAC 연산 결과")
     print(f"A 점수: {score_a}")
     print(f"B 점수: {score_b}")
-    print(f"판정: {result}")
+    
+    if result == "UNDECIDED":
+        print("판정: 판정 불가 (동점)")
+    else:
+        print(f"판정: {result}")
+
 
     performance_analysis([3])
 
