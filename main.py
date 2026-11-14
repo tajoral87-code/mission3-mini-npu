@@ -127,6 +127,125 @@ def create_cross(size):
     return matrix
 
 
+# 보너스 1. 2차원 배열을 1차원 배열로 변환
+def flatten_matrix(matrix):
+    result = []
+
+    for row in matrix:
+        for value in row:
+            result.append(value)
+
+    return result
+
+
+# 보너스 1. 1차원 MAC 계산
+def mac_flat(pattern, filter_data):
+    score = 0.0
+
+    for i in range(len(pattern)):
+        score += pattern[i] * filter_data[i]
+
+    return score
+
+
+# 보너스 2. X 패턴 자동 생성
+def create_x(size):
+    matrix = []
+
+    for i in range(size):
+        row = []
+
+        for j in range(size):
+            if i == j or i + j == size - 1:
+                row.append(1.0)
+            else:
+                row.append(0.0)
+
+        matrix.append(row)
+
+    return matrix
+
+
+# 보너스 1. 기존 방식과 최적화 방식 성능 비교
+def compare_performance(repeats=10):
+    print("\n[보너스 1] 2D / 1D MAC 성능 비교")
+    print(f"{'크기':<10}{'2D(ms)':>14}{'1D(ms)':>14}{'결과':>12}")
+
+    for size in [3, 5, 13, 25]:
+        pattern = create_cross(size)
+        filter_data = create_x(size)
+
+        flat_pattern = flatten_matrix(pattern)
+        flat_filter = flatten_matrix(filter_data)
+
+        score_2d = mac(pattern, filter_data)
+        score_1d = mac_flat(flat_pattern, flat_filter)
+
+        times_2d = []
+        times_1d = []
+
+        for _ in range(repeats):
+            start = time.perf_counter()
+            mac(pattern, filter_data)
+            times_2d.append((time.perf_counter() - start) * 1000)
+
+            start = time.perf_counter()
+            mac_flat(flat_pattern, flat_filter)
+            times_1d.append((time.perf_counter() - start) * 1000)
+
+        avg_2d = sum(times_2d) / repeats
+        avg_1d = sum(times_1d) / repeats
+
+        result = (
+            "PASS"
+            if abs(score_2d - score_1d) < EPSILON
+            else "FAIL"
+        )
+
+        print(
+            f"{size}x{size:<7}"
+            f"{avg_2d:>14.6f}"
+            f"{avg_1d:>14.6f}"
+            f"{result:>12}"
+        )
+
+
+# 보너스 2. 패턴 자동 생성 및 판정
+def bonus_mode():
+    print("\n[보너스 2] 패턴 자동 생성기")
+
+    while True:
+        try:
+            size = int(input("패턴 크기 N (3~25, 홀수): "))
+
+            if 3 <= size <= 25 and size % 2 == 1:
+                break
+
+            print("3부터 25까지 홀수를 입력하세요.")
+
+        except ValueError:
+            print("정수를 입력하세요.")
+
+    cross = create_cross(size)
+    x_pattern = create_x(size)
+
+    print("\nCross 패턴")
+    for row in cross:
+        print(" ".join(str(int(value)) for value in row))
+
+    print("\nX 패턴")
+    for row in x_pattern:
+        print(" ".join(str(int(value)) for value in row))
+
+    score_cross = mac(cross, cross)
+    score_x = mac(cross, x_pattern)
+
+    print("\n[생성된 Cross 패턴 판정]")
+    print(f"Cross 점수: {score_cross}")
+    print(f"X 점수: {score_x}")
+    print(f"판정: {decide(score_cross, score_x, 'Cross', 'X')}")
+
+
 # 8. 성능 분석
 def performance_analysis(sizes):
     print("\n[성능 분석: MAC 10회 평균]")
@@ -305,13 +424,18 @@ def mode2():
 
     else:
         print("실패 케이스 없음")
-
+     
+    compare_performance()
+    
 
 # 11. 메인 메뉴
+
+# 메인 메뉴
 def main():
     print("=== Mini NPU Simulator ===")
     print("1. 사용자 입력 (3x3)")
     print("2. data.json 분석")
+    print("3. 보너스: 패턴 자동 생성")
 
     while True:
         choice = input("선택: ").strip()
@@ -324,8 +448,12 @@ def main():
             mode2()
             break
 
+        elif choice == "3":
+            bonus_mode()
+            break
+
         else:
-            print("1 또는 2를 선택하세요.")
+            print("1, 2 또는 3을 선택하세요.")
 
 
 if __name__ == "__main__":
